@@ -2,14 +2,20 @@ import { test, expect } from "vitest";
 import { StacksClient } from "../src/stacks/client";
 
 test("default fetch is invoked with globalThis as receiver", async () => {
-  const originalFetch = (globalThis as any).fetch;
-  let observedThis: any = undefined;
+  // Preserve the original fetch implementation
+  const originalFetch: typeof globalThis.fetch | undefined = globalThis.fetch;
+
+  // observedThis will capture the `this` receiver used when fetch is invoked
+  let observedThis: unknown = undefined;
 
   // Install a platform-like fetch function that captures `this` when called.
-  (globalThis as any).fetch = function (url: any, opts: any) {
+  // Use the full RequestInfo/RequestInit/Response types for correctness.
+  globalThis.fetch = function (this: unknown, input: RequestInfo, init?: RequestInit): Promise<Response> {
     observedThis = this;
-    return Promise.resolve({ ok: true, status: 200, json: async () => ({}) } as any);
-  };
+    const body = JSON.stringify({});
+    const mockResponse = new Response(body, { status: 200, headers: { "Content-Type": "application/json" } });
+    return Promise.resolve(mockResponse);
+  } as typeof globalThis.fetch;
 
   try {
     const client = new StacksClient();
@@ -18,6 +24,12 @@ test("default fetch is invoked with globalThis as receiver", async () => {
     expect(observedThis).toBe(globalThis);
   } finally {
     // Restore original fetch after the test.
-    (globalThis as any).fetch = originalFetch;
+    if (originalFetch === undefined) {
+      // @note: if originalFetch was undefined, delete the property to restore prior state
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      delete (globalThis as any).fetch;
+    } else {
+      globalThis.fetch = originalFetch;
+    }
   }
 });
