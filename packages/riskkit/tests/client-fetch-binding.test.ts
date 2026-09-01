@@ -25,9 +25,8 @@ test("default fetch is invoked with globalThis as receiver", async () => {
   } finally {
     // Restore original fetch after the test.
     if (originalFetch === undefined) {
-      // @note: if originalFetch was undefined, delete the property to restore prior state
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-      delete (globalThis as any).fetch;
+      // Remove the property cleanly and typed via Reflect API (no `any`).
+      Reflect.deleteProperty(globalThis, "fetch");
     } else {
       globalThis.fetch = originalFetch;
     }
