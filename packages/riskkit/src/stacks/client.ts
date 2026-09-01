@@ -42,8 +42,9 @@ export class StacksClient {
       // browser "Illegal invocation" error that occurs when the native
       // implementation is called with the wrong `this` receiver.
       // Tests that inject fetchImpl will not be affected.
-      // Cast is necessary because .bind returns a generic Function type.
-      this.fetchImpl = (globalThis.fetch as unknown as Function).bind(globalThis) as typeof fetch;
+      // Use a typed cast rather than the generic Function type so ESLint
+      // does not complain about unsafe function types.
+      this.fetchImpl = globalThis.fetch.bind(globalThis) as typeof fetch;
     } else {
       throw new Error(
         "No fetch implementation available. Pass fetchImpl explicitly in a non-browser environment.",
