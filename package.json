@@ -1,0 +1,24 @@
+{
+  "name": "stacks-riskkit",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Open-source risk primitives for Bitcoin-native applications on Stacks.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @stacks-riskkit/core && npm run build -w @stacks-riskkit/demo",
+    "test": "npm run test -w @stacks-riskkit/core && npm run build -w @stacks-riskkit/core && npm run test -w @stacks-riskkit/demo",
+    "lint": "npm run lint -w @stacks-riskkit/core && npm run lint -w @stacks-riskkit/demo",
+    "typecheck": "npm run typecheck -w @stacks-riskkit/core && npm run build -w @stacks-riskkit/core && npm run typecheck -w @stacks-riskkit/demo",
+    "dev": "npm run build -w @stacks-riskkit/core && npm run dev -w @stacks-riskkit/demo"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
