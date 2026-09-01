@@ -32,13 +32,24 @@ export class StacksClient {
 
   constructor(config: StacksClientConfig = {}) {
     this.apiUrl = (config.apiUrl ?? DEFAULT_TESTNET_API_URL).replace(/\/$/, "");
-    const impl = config.fetchImpl ?? globalThis.fetch;
-    if (!impl) {
+
+    if (config.fetchImpl) {
+      // If a fetch implementation is explicitly provided (tests or non-browser
+      // environments), use it unchanged so callers can inject mocks.
+      this.fetchImpl = config.fetchImpl;
+    } else if (typeof globalThis.fetch === "function") {
+      // Bind the platform's native fetch to the global receiver to avoid the
+      // browser "Illegal invocation" error that occurs when the native
+      // implementation is called with the wrong `this` receiver.
+      // Tests that inject fetchImpl will not be affected.
+      // Use a typed cast rather than the generic Function type so ESLint
+      // does not complain about unsafe function types.
+      this.fetchImpl = globalThis.fetch.bind(globalThis) as typeof fetch;
+    } else {
       throw new Error(
         "No fetch implementation available. Pass fetchImpl explicitly in a non-browser environment.",
       );
     }
-    this.fetchImpl = impl;
   }
 
   async getJson<T>(path: string): Promise<T> {
